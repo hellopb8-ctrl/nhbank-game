@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> 농협은행 시스템부 소나기 게임</title>
+  <title>농협은행 소나기 게임</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; }
     
@@ -17,7 +17,6 @@
       padding: 20px;
     }
 
-    /* 전체 레이아웃 (게임 영역 + 우측 해설창) */
     .main-wrapper {
       display: flex;
       gap: 24px;
@@ -26,7 +25,6 @@
       width: 100%;
     }
 
-    /* 게임 컨테이너 */
     .game-container { 
       flex: 1;
       height: 740px; 
@@ -41,7 +39,6 @@
       position: relative; 
     }
 
-    /* 상단 상태 바 */
     .header { 
       padding: 16px 24px; 
       background: rgba(15, 23, 42, 0.85); 
@@ -54,7 +51,6 @@
     .stat-box span { color: #38bdf8; font-size: 18px; font-weight: 700; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
     .combo-badge { color: #fbbf24 !important; text-shadow: 0 0 10px rgba(251, 191, 36, 0.6) !important; }
 
-    /* 비 내리는 영역 */
     .game-area { 
       flex: 1; 
       position: relative; 
@@ -62,10 +58,9 @@
       background: linear-gradient(180deg, rgba(15, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.8) 100%);
     }
 
-    /* 단어 아이템 디자인 */
     .word-item { 
       position: absolute; 
-      background: rgba(30, 41, 59, 0.85); 
+      background: rgba(30, 41, 59, 0.9); 
       color: #38bdf8; 
       padding: 7px 16px; 
       border-radius: 20px; 
@@ -77,7 +72,7 @@
       transition: background 0.15s, border-color 0.15s, transform 0.15s; 
     }
     .word-item.danger { 
-      background: rgba(225, 29, 72, 0.85); 
+      background: rgba(225, 29, 72, 0.9); 
       color: #fff;
       border-color: #fb7185; 
       box-shadow: 0 0 18px rgba(244, 63, 94, 0.8);
@@ -98,7 +93,6 @@
       box-shadow: 0 0 15px #f43f5e;
     }
 
-    /* 하단 인풋 영역 */
     .footer { 
       padding: 16px 24px; 
       background: rgba(15, 23, 42, 0.9); 
@@ -121,7 +115,6 @@
       box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); 
     }
 
-    /* 우측 단어 해설 사이드 패널 */
     .info-panel {
       width: 320px;
       height: 740px;
@@ -146,16 +139,15 @@
       gap: 8px;
     }
 
-    /* 해설 팝업 카드 */
     .desc-card {
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.95);
       border: 1px solid #0284c7;
       border-radius: 12px;
       padding: 20px;
       box-shadow: 0 0 20px rgba(2, 132, 199, 0.3);
       opacity: 0;
       transform: translateY(15px);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .desc-card.active {
       opacity: 1;
@@ -191,7 +183,6 @@
       line-height: 1.6;
     }
 
-    /* 스타트 & 게임오버 오버레이 */
     .overlay { 
       position: absolute; 
       top: 0; 
@@ -229,7 +220,6 @@
 <body>
 
 <div class="main-wrapper">
-  <!-- 게임 화면 -->
   <div class="game-container">
     <div class="header">
       <div class="stat-box">점수: <span id="score">0</span></div>
@@ -247,13 +237,12 @@
     </div>
 
     <div class="overlay" id="overlay">
-      <h2 id="overlayTitle">IT & AI 인프라 소나기</h2>
+      <h2 id="overlayTitle">농협은행 소나기 게임</h2>
       <p id="overlayDesc">단어가 바닥에 닿기 전에 신속하게 타이핑하세요!</p>
       <button id="startBtn" onclick="startGame()">게임 시작</button>
     </div>
   </div>
 
-  <!-- 우측 실시간 단어 해설 패널 -->
   <div class="info-panel">
     <div class="info-panel-title">💡 맞춘 단어 실시간 해설</div>
     <div id="infoContent">
@@ -263,7 +252,6 @@
 </div>
 
 <script>
-  // 용어 및 해설 데이터베이스
   const wordDict = [
     { word: "가상화", cat: "인프라", desc: "물리적 서버 자원을 논리적으로 분할하여 여러 대의 가상 머신(VM)을 실행할 수 있게 하는 기술입니다." },
     { word: "로드밸런서", cat: "네트워크", desc: "서버에 가해지는 대량의 트래픽을 여러 대의 서버로 고르게 분산하여 서버 과부하를 방지합니다." },
@@ -291,6 +279,56 @@
     { word: "마이크로서비스", cat: "아키텍처", desc: "하나의 거대한 애플리케이션을 작고 독립적으로 배포 가능한 여러 개의 모듈 서비스 단위로 나누어 구축하는 구조입니다." }
   ];
 
+  // Web Audio API 효과음 생성기
+  let audioCtx = null;
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+  }
+
+  function playHitSound(currentCombo) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    // 콤보가 올라갈수록 톤이 살짝 높아짐
+    const baseFreq = 523.25; // C5
+    const pitchMultiplier = Math.min(2.0, 1 + (currentCombo * 0.05));
+    
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(baseFreq * pitchMultiplier, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq * pitchMultiplier * 1.5, audioCtx.currentTime + 0.12);
+
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.12);
+  }
+
+  function playMissSound() {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.2);
+
+    gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.2);
+  }
+
   let score = 0, combo = 0, lives = 5, level = 1;
   let wordsOnScreen = [];
   let gameInterval, spawnInterval;
@@ -308,10 +346,18 @@
   const startBtn = document.getElementById("startBtn");
   const infoContent = document.getElementById("infoContent");
 
-  // 단어 생성 (스폰 속도 대폭 상향)
+  // 화면에 없는 단어만 골라 스폰 (중복 방지)
   function spawnWord() {
     if (!isRunning) return;
-    const targetItem = wordDict[Math.floor(Math.random() * wordDict.length)];
+
+    const currentScreenTexts = wordsOnScreen.map(w => w.data.word);
+    const availablePool = wordDict.filter(item => !currentScreenTexts.includes(item.word));
+
+    // 모든 단어가 화면에 떠있는 극단적인 경우를 대비한 fallback
+    const targetItem = (availablePool.length > 0)
+      ? availablePool[Math.floor(Math.random() * availablePool.length)]
+      : wordDict[Math.floor(Math.random() * wordDict.length)];
+
     const el = document.createElement("div");
     el.className = "word-item";
     el.innerText = targetItem.word;
@@ -322,16 +368,16 @@
     el.style.top = "0px";
 
     gameArea.appendChild(el);
-    // 기본 낙하 속도 증가 (2.2 + level * 0.45)
+
+    // 속도 밸런스 조정: 1.5 시작, 레벨당 0.3 증가
     wordsOnScreen.push({
       el,
       data: targetItem,
       y: 0,
-      speed: 2.2 + (level * 0.45)
+      speed: 1.5 + (level * 0.3)
     });
   }
 
-  // 메인 게임 루프
   function gameLoop() {
     const maxHeight = gameArea.clientHeight - 40;
 
@@ -340,12 +386,10 @@
       item.y += item.speed;
       item.el.style.top = `${item.y}px`;
 
-      // 바닥 근접 경고
       if (item.y > maxHeight - 80) {
         item.el.classList.add("danger");
       }
 
-      // 바닥 충돌
       if (item.y >= maxHeight) {
         gameArea.removeChild(item.el);
         wordsOnScreen.splice(i, 1);
@@ -355,6 +399,7 @@
   }
 
   function handleMiss() {
+    playMissSound();
     lives--;
     combo = 0;
     updateUI();
@@ -368,7 +413,6 @@
     livesEl.innerText = "❤️".repeat(Math.max(0, lives));
   }
 
-  // 우측 해설 팝업 업데이트
   function showDescription(data) {
     infoContent.innerHTML = `
       <div class="desc-card active">
@@ -379,7 +423,6 @@
     `;
   }
 
-  // 입력 감지
   wordInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       const val = wordInput.value.trim();
@@ -391,19 +434,18 @@
         gameArea.removeChild(matched.el);
         wordsOnScreen.splice(idx, 1);
 
-        // 해설 팝업 띄우기
+        // 효과음 및 해설
+        playHitSound(combo);
         showDescription(matched.data);
 
-        // 점수 및 콤보
         combo++;
-        score += 20 + (combo * 8);
+        score += 20 + (combo * 5);
 
-        // 레벨업 (350점 단위로 속도 및 스폰 주기 증가)
-        if (score >= level * 350) {
+        // 레벨업 (400점 단위)
+        if (score >= level * 400) {
           level++;
           clearInterval(spawnInterval);
-          // 최소 500ms까지 스폰 주기 단축
-          const newSpawnRate = Math.max(500, 1400 - (level * 120));
+          const newSpawnRate = Math.max(700, 1500 - (level * 100));
           spawnInterval = setInterval(spawnWord, newSpawnRate);
         }
         updateUI();
@@ -411,8 +453,8 @@
     }
   });
 
-  // 게임 시작
   function startGame() {
+    initAudio();
     score = 0; combo = 0; lives = 5; level = 1;
     wordsOnScreen.forEach(w => gameArea.removeChild(w.el));
     wordsOnScreen = [];
@@ -429,12 +471,10 @@
     clearInterval(gameInterval);
     clearInterval(spawnInterval);
 
-    // 프레임 주기(30ms) 및 스폰 주기(1300ms로 대폭 단축)
     gameInterval = setInterval(gameLoop, 30);
-    spawnInterval = setInterval(spawnWord, 1300);
+    spawnInterval = setInterval(spawnWord, 1500); // 1.5초 주기 스폰
   }
 
-  // 게임 오버
   function gameOver() {
     isRunning = false;
     clearInterval(gameInterval);
