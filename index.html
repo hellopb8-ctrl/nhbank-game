@@ -3,59 +3,292 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IT 인프라 & AI 소나기 타자 게임</title>
+  <title> 농협은행 시스템부 소나기 게임</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
-    body { background: #0f172a; color: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .game-container { width: 680px; height: 720px; background: #1e293b; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
-    .header { padding: 16px 24px; background: #0f172a; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; }
-    .stat-box { font-size: 15px; font-weight: 600; color: #94a3b8; }
-    .stat-box span { color: #38bdf8; font-size: 18px; }
-    .combo-badge { color: #f59e0b; font-weight: bold; }
-    .game-area { flex: 1; position: relative; overflow: hidden; background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); }
-    .word-item { position: absolute; background: #334155; color: #f8fafc; padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: bold; border: 1px solid #475569; white-space: nowrap; transition: background 0.2s; }
-    .word-item.danger { background: #e11d48; border-color: #f43f5e; }
-    .ground-line { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: #ef4444; }
-    .footer { padding: 16px 24px; background: #0f172a; display: flex; gap: 12px; border-top: 2px solid #334155; }
-    .input-box { flex: 1; padding: 12px 16px; border-radius: 8px; border: 2px solid #334155; background: #1e293b; color: #fff; font-size: 16px; outline: none; }
-    .input-box:focus { border-color: #38bdf8; }
-    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px; z-index: 10; }
-    .overlay button { padding: 12px 28px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-    .overlay button:hover { background: #0369a1; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', -apple-system, sans-serif; }
+    
+    body { 
+      background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); 
+      color: #f8fafc; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      padding: 20px;
+    }
+
+    /* 전체 레이아웃 (게임 영역 + 우측 해설창) */
+    .main-wrapper {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      max-width: 1060px;
+      width: 100%;
+    }
+
+    /* 게임 컨테이너 */
+    .game-container { 
+      flex: 1;
+      height: 740px; 
+      background: rgba(30, 41, 59, 0.7); 
+      backdrop-filter: blur(12px);
+      border-radius: 16px; 
+      display: flex; 
+      flex-direction: column; 
+      overflow: hidden; 
+      box-shadow: 0 0 40px rgba(56, 189, 248, 0.15), 0 20px 40px rgba(0,0,0,0.6); 
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative; 
+    }
+
+    /* 상단 상태 바 */
+    .header { 
+      padding: 16px 24px; 
+      background: rgba(15, 23, 42, 0.85); 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08); 
+    }
+    .stat-box { font-size: 14px; font-weight: 600; color: #94a3b8; }
+    .stat-box span { color: #38bdf8; font-size: 18px; font-weight: 700; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+    .combo-badge { color: #fbbf24 !important; text-shadow: 0 0 10px rgba(251, 191, 36, 0.6) !important; }
+
+    /* 비 내리는 영역 */
+    .game-area { 
+      flex: 1; 
+      position: relative; 
+      overflow: hidden; 
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.8) 100%);
+    }
+
+    /* 단어 아이템 디자인 */
+    .word-item { 
+      position: absolute; 
+      background: rgba(30, 41, 59, 0.85); 
+      color: #38bdf8; 
+      padding: 7px 16px; 
+      border-radius: 20px; 
+      font-size: 14px; 
+      font-weight: 700; 
+      border: 1px solid #38bdf8; 
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+      white-space: nowrap; 
+      transition: background 0.15s, border-color 0.15s, transform 0.15s; 
+    }
+    .word-item.danger { 
+      background: rgba(225, 29, 72, 0.85); 
+      color: #fff;
+      border-color: #fb7185; 
+      box-shadow: 0 0 18px rgba(244, 63, 94, 0.8);
+      animation: pulse 0.4s infinite alternate;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .ground-line { 
+      position: absolute; 
+      bottom: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 4px; 
+      background: #f43f5e; 
+      box-shadow: 0 0 15px #f43f5e;
+    }
+
+    /* 하단 인풋 영역 */
+    .footer { 
+      padding: 16px 24px; 
+      background: rgba(15, 23, 42, 0.9); 
+      display: flex; 
+      border-top: 1px solid rgba(255, 255, 255, 0.08); 
+    }
+    .input-box { 
+      flex: 1; 
+      padding: 14px 20px; 
+      border-radius: 10px; 
+      border: 2px solid #334155; 
+      background: #0f172a; 
+      color: #fff; 
+      font-size: 16px; 
+      outline: none; 
+      transition: all 0.2s ease;
+    }
+    .input-box:focus { 
+      border-color: #38bdf8; 
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); 
+    }
+
+    /* 우측 단어 해설 사이드 패널 */
+    .info-panel {
+      width: 320px;
+      height: 740px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 30px rgba(0,0,0,0.4);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .info-panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #94a3b8;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 해설 팝업 카드 */
+    .desc-card {
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #0284c7;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 0 20px rgba(2, 132, 199, 0.3);
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .desc-card.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .desc-card .tag {
+      display: inline-block;
+      font-size: 11px;
+      background: #0369a1;
+      color: #e0f2fe;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .desc-card h3 {
+      font-size: 20px;
+      color: #38bdf8;
+      margin-bottom: 10px;
+    }
+    .desc-card p {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #cbd5e1;
+      word-break: keep-all;
+    }
+
+    .placeholder-text {
+      color: #475569;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 150px;
+      line-height: 1.6;
+    }
+
+    /* 스타트 & 게임오버 오버레이 */
+    .overlay { 
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(15, 23, 42, 0.94); 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center; 
+      align-items: center; 
+      gap: 16px; 
+      z-index: 10; 
+    }
+    .overlay h2 { font-size: 28px; color: #38bdf8; text-shadow: 0 0 15px rgba(56,189,248,0.5); }
+    .overlay p { font-size: 15px; color: #cbd5e1; }
+    .overlay button { 
+      padding: 14px 36px; 
+      background: linear-gradient(135deg, #0284c7, #2563eb); 
+      color: white; 
+      border: none; 
+      border-radius: 10px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: all 0.2s; 
+      box-shadow: 0 0 20px rgba(2, 132, 199, 0.5);
+    }
+    .overlay button:hover { 
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(37, 99, 235, 0.8);
+    }
   </style>
 </head>
 <body>
 
-<div class="game-container">
-  <div class="header">
-    <div class="stat-box">점수: <span id="score">0</span></div>
-    <div class="stat-box">콤보: <span id="combo" class="combo-badge">0</span></div>
-    <div class="stat-box">라이프: <span id="lives">❤️❤️❤️❤️❤️</span></div>
-    <div class="stat-box">레벨: <span id="level">1</span></div>
+<div class="main-wrapper">
+  <!-- 게임 화면 -->
+  <div class="game-container">
+    <div class="header">
+      <div class="stat-box">점수: <span id="score">0</span></div>
+      <div class="stat-box">콤보: <span id="combo" class="combo-badge">0</span></div>
+      <div class="stat-box">라이프: <span id="lives">❤️❤️❤️❤️❤️</span></div>
+      <div class="stat-box">레벨: <span id="level">1</span></div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+      <div class="ground-line"></div>
+    </div>
+
+    <div class="footer">
+      <input type="text" id="wordInput" class="input-box" placeholder="단어를 입력하고 Enter를 누르세요" autocomplete="off" disabled />
+    </div>
+
+    <div class="overlay" id="overlay">
+      <h2 id="overlayTitle">IT & AI 인프라 소나기</h2>
+      <p id="overlayDesc">단어가 바닥에 닿기 전에 신속하게 타이핑하세요!</p>
+      <button id="startBtn" onclick="startGame()">게임 시작</button>
+    </div>
   </div>
 
-  <div class="game-area" id="gameArea">
-    <div class="ground-line"></div>
-  </div>
-
-  <div class="footer">
-    <input type="text" id="wordInput" class="input-box" placeholder="단어를 입력하고 Enter를 누르세요" autocomplete="off" disabled />
-  </div>
-
-  <div class="overlay" id="startOverlay">
-    <h2>IT & AI 인프라 소나기</h2>
-    <p>단어가 바닥에 닿기 전에 입력하세요!</p>
-    <button onclick="startGame()">게임 시작</button>
+  <!-- 우측 실시간 단어 해설 패널 -->
+  <div class="info-panel">
+    <div class="info-panel-title">💡 맞춘 단어 실시간 해설</div>
+    <div id="infoContent">
+      <p class="placeholder-text">정답을 맞추면 이곳에<br>IT 및 AI 용어 해설이 표시됩니다.</p>
+    </div>
   </div>
 </div>
 
 <script>
-  const wordList = [
-    "가상화", "로드밸런서", "서버호스팅", "인공신경망", "대규모언어모델", 
-    "프롬프트", "클라우드", "고가용성", "데이터파이프라인", "컨테이너", 
-    "쿠버네티스", "오케스트레이션", "트랜스포머", "모니터링", "로드밸런싱", 
-    "캐싱", "방화벽", "디스크배열", "메모리누수", "장애복구", 
-    "하이브리드클라우드", "파인튜닝", "임베딩", "스토리지풀", "마이크로서비스"
+  // 용어 및 해설 데이터베이스
+  const wordDict = [
+    { word: "가상화", cat: "인프라", desc: "물리적 서버 자원을 논리적으로 분할하여 여러 대의 가상 머신(VM)을 실행할 수 있게 하는 기술입니다." },
+    { word: "로드밸런서", cat: "네트워크", desc: "서버에 가해지는 대량의 트래픽을 여러 대의 서버로 고르게 분산하여 서버 과부하를 방지합니다." },
+    { word: "서버호스팅", cat: "인프라", desc: "데이터 센터의 물리적 단독 서버 장비를 고객에게 임대하고 운영 환경을 제공하는 서비스입니다." },
+    { word: "인공신경망", cat: "AI", desc: "인간의 뇌 신경세포(뉴런) 작동 원리를 모방하여 컴퓨터가 데이터 패턴을 학습하도록 만든 알고리즘입니다." },
+    { word: "대규모언어모델", cat: "AI", desc: "방대한 텍스트 데이터를 학습하여 인간 수준의 자연어 이해 및 생성 능력을 갖춘 거대 인공지능 모델(LLM)입니다." },
+    { word: "프롬프트", cat: "AI", desc: "생성형 AI 모델로부터 원하는 최적의 답변을 이끌어내기 위해 입력하는 구체적인 지시어나 질문입니다." },
+    { word: "클라우드", cat: "인프라", desc: "인터넷을 통해 컴퓨팅 파워, 스토리지, 데이터베이스 등 IT 자원을 필요할 때 유연하게 빌려 쓰는 기술입니다." },
+    { word: "고가용성", cat: "인프라", desc: "서버나 시스템에 장애가 발생하더라도 서비스가 중단되지 않고 지속적으로 정상 운영될 수 있는 능력(HA)입니다." },
+    { word: "데이터파이프라인", cat: "데이터", desc: "다양한 소스에서 수집된 데이터를 가공, 정제하여 분석 및 저장소로 자동 이동시키는 일련의 시스템입니다." },
+    { word: "컨테이너", cat: "인프라", desc: "애플리케이션과 실행에 필요한 라이브러리를 하나로 묶어 어떤 환경에서도 동일하게 배포/실행하는 경량 가상화 기술입니다." },
+    { word: "쿠버네티스", cat: "인프라", desc: "대규모 컨테이너화된 애플리케이션의 배포, 확장 및 관리를 자동화해 주는 오케스트레이션 플랫폼입니다." },
+    { word: "오케스트레이션", cat: "인프라", desc: "복잡한 컴퓨터 시스템, 미들웨어, 서비스 및 가상 인프라의 설정과 관리를 자동화하고 조율하는 기술입니다." },
+    { word: "트랜스포머", cat: "AI", desc: "문장 내 단어 간의 연관성(어텐션 메커니즘)을 병렬로 파악하여 현대 언어모델 혁신을 이끈 딥러닝 아키텍처입니다." },
+    { word: "모니터링", cat: "운영", desc: "서버의 CPU, 메모리, 네트워크 트래픽 등 성능 및 가용 상태를 실시간으로 감시하고 이상을 감지하는 작업입니다." },
+    { word: "로드밸런싱", cat: "네트워크", desc: "특정 서버에 부하가 집중되지 않도록 유입되는 네트워크 요청을 다수의 서버 풀로 분배하는 기법입니다." },
+    { word: "캐싱", cat: "인프라", desc: "자주 접근하는 데이터를 속도가 빠른 임시 저장 메모리에 보관하여 데이터 응답 속도를 비약적으로 향상시키는 방법입니다." },
+    { word: "방화벽", cat: "보안", desc: "신뢰할 수 없는 외부 네트워크로부터 내부 네트워크를 보호하기 위해 접근 트래픽을 감시하고 제어하는 보안 시스템입니다." },
+    { word: "디스크배열", cat: "스토리지", desc: "여러 개의 물리 디스크를 결합(RAID)하여 데이터의 안정성(백업)과 읽기/쓰기 속도를 향상시키는 저장 장치 구조입니다." },
+    { word: "메모리누수", cat: "시스템", desc: "프로그램이 사용한 메모리를 정상적으로 반환하지 않아 시간이 지날수록 점유 메모리가 늘어나 시스템이 멈추는 현상입니다." },
+    { word: "장애복구", cat: "운영", desc: "천재지변이나 시스템 치명적 오류로 서비스가 중단되었을 때 백업 자원을 활용해 신속히 원상태로 복원하는 계획(DR)입니다." },
+    { word: "하이브리드클라우드", cat: "인프라", desc: "자체 구축한 온프레미스 프라이빗 클라우드와 외부 퍼블릭 클라우드를 상호 연결해 보안과 확장성을 동시에 챙기는 환경입니다." },
+    { word: "파인튜닝", cat: "AI", desc: "이미 학습된 대형 AI 사전학습 모델에 특정 도메인(금융, 의료 등) 데이터를 추가로 미세 조정 학습시키는 기법입니다." },
+    { word: "스토리지풀", cat: "스토리지", desc: "물리적으로 분산된 다수의 저장 공간을 논리적인 하나의 거대한 저장소로 묶어 유연하게 할당하는 기술입니다." },
+    { word: "마이크로서비스", cat: "아키텍처", desc: "하나의 거대한 애플리케이션을 작고 독립적으로 배포 가능한 여러 개의 모듈 서비스 단위로 나누어 구축하는 구조입니다." }
   ];
 
   let score = 0, combo = 0, lives = 5, level = 1;
@@ -69,33 +302,50 @@
   const comboEl = document.getElementById("combo");
   const livesEl = document.getElementById("lives");
   const levelEl = document.getElementById("level");
-  const overlay = document.getElementById("startOverlay");
+  const overlay = document.getElementById("overlay");
+  const overlayTitle = document.getElementById("overlayTitle");
+  const overlayDesc = document.getElementById("overlayDesc");
+  const startBtn = document.getElementById("startBtn");
+  const infoContent = document.getElementById("infoContent");
 
+  // 단어 생성 (스폰 속도 대폭 상향)
   function spawnWord() {
     if (!isRunning) return;
-    const text = wordList[Math.floor(Math.random() * wordList.length)];
+    const targetItem = wordDict[Math.floor(Math.random() * wordDict.length)];
     const el = document.createElement("div");
     el.className = "word-item";
-    el.innerText = text;
+    el.innerText = targetItem.word;
 
-    const areaWidth = gameArea.clientWidth - 120;
-    const x = Math.max(10, Math.floor(Math.random() * areaWidth));
+    const areaWidth = gameArea.clientWidth - 140;
+    const x = Math.max(15, Math.floor(Math.random() * areaWidth));
     el.style.left = `${x}px`;
     el.style.top = "0px";
 
     gameArea.appendChild(el);
-    wordsOnScreen.push({ el, text, y: 0, speed: 1.2 + (level * 0.3) });
+    // 기본 낙하 속도 증가 (2.2 + level * 0.45)
+    wordsOnScreen.push({
+      el,
+      data: targetItem,
+      y: 0,
+      speed: 2.2 + (level * 0.45)
+    });
   }
 
+  // 메인 게임 루프
   function gameLoop() {
+    const maxHeight = gameArea.clientHeight - 40;
+
     for (let i = wordsOnScreen.length - 1; i >= 0; i--) {
       const item = wordsOnScreen[i];
       item.y += item.speed;
       item.el.style.top = `${item.y}px`;
 
-      const maxHeight = gameArea.clientHeight - 35;
-      if (item.y > maxHeight - 60) item.el.classList.add("danger");
+      // 바닥 근접 경고
+      if (item.y > maxHeight - 80) {
+        item.el.classList.add("danger");
+      }
 
+      // 바닥 충돌
       if (item.y >= maxHeight) {
         gameArea.removeChild(item.el);
         wordsOnScreen.splice(i, 1);
@@ -112,35 +362,56 @@
   }
 
   function updateUI() {
-    scoreEl.innerText = score;
+    scoreEl.innerText = score.toLocaleString();
     comboEl.innerText = combo;
     levelEl.innerText = level;
     livesEl.innerText = "❤️".repeat(Math.max(0, lives));
   }
 
+  // 우측 해설 팝업 업데이트
+  function showDescription(data) {
+    infoContent.innerHTML = `
+      <div class="desc-card active">
+        <span class="tag">${data.cat}</span>
+        <h3>${data.word}</h3>
+        <p>${data.desc}</p>
+      </div>
+    `;
+  }
+
+  // 입력 감지
   wordInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       const val = wordInput.value.trim();
       wordInput.value = "";
-      
-      const idx = wordsOnScreen.findIndex((w) => w.text === val);
+
+      const idx = wordsOnScreen.findIndex((w) => w.data.word === val);
       if (idx !== -1) {
-        const item = wordsOnScreen[idx];
-        gameArea.removeChild(item.el);
+        const matched = wordsOnScreen[idx];
+        gameArea.removeChild(matched.el);
         wordsOnScreen.splice(idx, 1);
 
+        // 해설 팝업 띄우기
+        showDescription(matched.data);
+
+        // 점수 및 콤보
         combo++;
-        score += 10 + (combo * 5);
-        if (score >= level * 300) {
+        score += 20 + (combo * 8);
+
+        // 레벨업 (350점 단위로 속도 및 스폰 주기 증가)
+        if (score >= level * 350) {
           level++;
           clearInterval(spawnInterval);
-          spawnInterval = setInterval(spawnWord, Math.max(800, 2000 - (level * 150)));
+          // 최소 500ms까지 스폰 주기 단축
+          const newSpawnRate = Math.max(500, 1400 - (level * 120));
+          spawnInterval = setInterval(spawnWord, newSpawnRate);
         }
         updateUI();
       }
     }
   });
 
+  // 게임 시작
   function startGame() {
     score = 0; combo = 0; lives = 5; level = 1;
     wordsOnScreen.forEach(w => gameArea.removeChild(w.el));
@@ -148,26 +419,31 @@
     isRunning = true;
     updateUI();
 
+    infoContent.innerHTML = `<p class="placeholder-text">정답을 맞추면 이곳에<br>IT 및 AI 용어 해설이 표시됩니다.</p>`;
+
     overlay.style.display = "none";
     wordInput.disabled = false;
+    wordInput.value = "";
     wordInput.focus();
 
     clearInterval(gameInterval);
     clearInterval(spawnInterval);
+
+    // 프레임 주기(30ms) 및 스폰 주기(1300ms로 대폭 단축)
     gameInterval = setInterval(gameLoop, 30);
-    spawnInterval = setInterval(spawnWord, 1800);
+    spawnInterval = setInterval(spawnWord, 1300);
   }
 
+  // 게임 오버
   function gameOver() {
     isRunning = false;
     clearInterval(gameInterval);
     clearInterval(spawnInterval);
     wordInput.disabled = true;
-    overlay.innerHTML = `
-      <h2>게임 오버!</h2>
-      <p>최종 점수: <strong>${score}점</strong> | 최고 콤보: <strong>${combo}</strong></p>
-      <button onclick="startGame()">다시 시작</button>
-    `;
+
+    overlayTitle.innerText = "GAME OVER";
+    overlayDesc.innerHTML = `최종 점수: <strong>${score.toLocaleString()}점</strong> | 도달 레벨: <strong>Lv.${level}</strong>`;
+    startBtn.innerText = "다시 도전하기";
     overlay.style.display = "flex";
   }
 </script>
